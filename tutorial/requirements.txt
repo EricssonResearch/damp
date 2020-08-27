@@ -1,0 +1,8 @@
+tensorflow-federated
+statsmodels
+seaborn
+pandas
+jupyter
+sklearn
+scipy==1.4.1
+numpy~=1.18.4

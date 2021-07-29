@@ -1,0 +1,52 @@
+#cloud-config
+
+apt_update: true
+apt_upgrade: true
+packages:
+ - python3-pip
+ - python3-dev
+ - build-essential
+byobu_default: system 
+
+write_files:
+  - path: /home/ubuntu/Dockerfile
+    content: |
+      FROM ubuntu
+      RUN apt-get update
+      RUN apt-get -y upgrade 
+      RUN apt-get install -y git
+      RUN apt-get install -y python3-pip
+      RUN pip3 install --upgrade pip
+      RUN pip3 install numpy
+      RUN pip3 install nest_asyncio
+      RUN pip3 install pandas
+      RUN pip3 install sklearn
+      RUN pip3 install tensorflow==2.2.0
+      RUN pip3 install keras
+      RUN pip3 install tensorflow-federated
+      RUN git clone https://github.com/RaheelTheDeveloper/damp.git
+      RUN pip3 install flask
+      RUN apt install unzip
+      RUN unzip -j damp/federated/v1.2/2015-2019_sensorData_metrologicalData.zip -d /damp/federated/v1.2/
+      WORKDIR /damp/cloud/
+      EXPOSE 5000
+      ENV PATH="${PATH}:/usr/games/"
+      CMD ["python3","app.py"]
+            
+  - path: /etc/docker/daemon.json
+    content: |
+      {
+      "mtu": 1400
+      }
+
+    
+runcmd:
+ - echo "export PATH=$PATH:/usr/games" >> /home/ubuntu/.bashrc  
+ - source /home/ubuntu/.bashrc
+ - sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+ - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+ - sudo apt-get install -y docker-ce
+ - sudo apt-get install -y git
+ - cd /home/ubuntu
+ - sudo docker build --no-cache -t federated:latest .
+ - sudo docker run -d -p 5000:5000 federated
